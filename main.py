@@ -909,13 +909,9 @@ def main():
     ========================================
     """)
     
-    print("PILIH STRATEGI PERANG:")
-    print("1. ⚡ LIGHTNING ATTACK (Multi-thread Jam 7 + reCAPTCHA)")
-    print("2. 🤺 SINGLE WARRIOR (Fast Jam 7 + reCAPTCHA)") 
-    print("3. 🎫 TRADITIONAL ANTREAN (Full feature)")
-    print("4. 🛒 BELANJA ONLINE (Original)")
-    
-    choice = input("Pilih mode (1/2/3/4): ")
+    # Auto pilih mode 2 (Single Warrior) untuk production
+    choice = "2"
+    print("AUTO SELECT: Single Warrior Mode (Production)")
     
     if choice == "1":
         print("🚀 Launching Multi-Thread Attack Squad dengan reCAPTCHA...")
