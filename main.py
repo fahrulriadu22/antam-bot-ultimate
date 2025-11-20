@@ -68,8 +68,10 @@ class AntamWarrior:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-images")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--remote-debugging-port=9222")
         
-        self.driver = uc.Chrome(options=options, headless=False)
+        self.driver = uc.Chrome(options=options, use_subprocess=False)
         return self.driver
     
     def pre_warm_browser_with_captcha(self):
@@ -516,7 +518,9 @@ def create_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    return uc.Chrome(options=options, headless=False)
+    options.add_argument("--disable-gpu")
+    options.add_argument("--remote-debugging-port=9222")
+    return uc.Chrome(options=options, use_subprocess=False)
 
 # ==========================================================
 # BELM MAPPING (ORIGINAL LU)
