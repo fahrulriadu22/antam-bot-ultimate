@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Chrome and Browser files
+chromedriver*
+chromium/
+google-chrome*
+*.deb
+*.exe
+*.msi
+user-data/
+*.log
+
+# Screenshots
+screenshots/
+
+# Large files
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# Config files (jangan commit yang berisi credentials)
+config.py
