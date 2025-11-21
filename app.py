@@ -335,11 +335,22 @@ class AntamBotUI:
             self.add_log(f"🎯 Battle time set to: {battle_time_str}")
             
             # Load credentials dari config.py
+            # Load credentials dari config.py atau environment variables
             try:
-                from config import EMAIL, PASSWORD
-                email = EMAIL
-                password = PASSWORD
-                self.add_log("✅ Credentials loaded from config.py")
+                import os
+                # Coba dari environment variables dulu
+                email = os.environ.get('EMAIL')
+                password = os.environ.get('PASSWORD')
+                
+                if not email or not password:
+                    # Fallback ke config.py
+                    from config import EMAIL, PASSWORD
+                    email = EMAIL
+                    password = PASSWORD
+                    self.add_log("✅ Credentials loaded from config.py")
+                else:
+                    self.add_log("✅ Credentials loaded from environment variables")
+                    
             except Exception as e:
                 self.add_log(f"❌ Failed to load credentials: {e}")
                 return

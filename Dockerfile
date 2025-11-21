@@ -43,5 +43,5 @@ RUN pip install -r requirements.txt
 # Expose port
 EXPOSE 8501
 
-# Run app (SIMPLE command)
-CMD ["streamlit", "run", "app.py"]
+# Ganti CMD di Dockerfile jadi:
+CMD streamlit run app.py --server.port $PORT --server.address 0.0.0.0
