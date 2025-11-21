@@ -481,6 +481,127 @@ class AntamBotUI:
             self.warriors_status = {"Warrior 0": "Error"}
         finally:
             self.is_running = False
+
+    def run_test_mode(self, belm_target, battle_time_str):
+        """TEST MODE - Run bot dengan waktu custom untuk testing"""
+        try:
+            from main import AntamWarrior, set_battle_time
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            
+            # Set battle time dari UI
+            set_battle_time(battle_time_str)
+            self.add_log(f"🧪 TEST MODE: Battle time set to: {battle_time_str}")
+            
+            # Load credentials
+            try:
+                from config import EMAIL, PASSWORD
+                email = EMAIL
+                password = PASSWORD
+                self.add_log("✅ Credentials loaded from config.py")
+            except Exception as e:
+                self.add_log(f"❌ Failed to load credentials: {e}")
+                return
+            
+            self.add_log("🔄 Initializing Test Warrior...")
+            
+            # Setup warrior
+            self.current_warrior = AntamWarrior(0)
+            if self.current_warrior.create_warrior_driver():
+                self.add_log("✅ Browser created successfully")
+                
+                # Step 1: Buka login page
+                self.add_log("🌐 Opening login page...")
+                self.current_warrior.driver.get("https://antrean.logammulia.com/login")
+                time.sleep(2)
+                
+                # Step 2: Isi credentials
+                username = WebDriverWait(self.current_warrior.driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "username"))
+                )
+                username.clear()
+                username.send_keys(email)
+                
+                password_elem = self.current_warrior.driver.find_element(By.ID, "password")
+                password_elem.clear()
+                password_elem.send_keys(password)
+                
+                self.add_log("✅ Credentials filled")
+                
+                # Step 3: Manual reCAPTCHA untuk test
+                self.add_log("🛡️ TEST: Please solve reCAPTCHA manually in browser")
+                self.add_log("⏳ Waiting 60 seconds for manual reCAPTCHA...")
+                
+                # Tunggu 60 detik buat user solve reCAPTCHA
+                max_wait_time = 60
+                start_time = time.time()
+                
+                while time.time() - start_time < max_wait_time:
+                    if self.stop_requested:
+                        self.add_log("⏹️ Test stopped by user")
+                        return
+                    
+                    # Cek setiap 5 detik
+                    time.sleep(5)
+                    elapsed = int(time.time() - start_time)
+                    self.add_log(f"⏰ Waiting... {elapsed}/60 seconds")
+                
+                self.add_log("✅ Assuming reCAPTCHA solved, continuing test...")
+                
+                # Step 4: Klik login (asumsi reCAPTCHA sudah solved)
+                try:
+                    login_btn = WebDriverWait(self.current_warrior.driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']"))
+                    )
+                    self.current_warrior.driver.execute_script("arguments[0].click();", login_btn)
+                    self.add_log("✅ Login button clicked!")
+                    time.sleep(3)
+                except:
+                    self.add_log("⚠️ Could not click login, continuing...")
+                
+                # Step 5: Setup form antrean
+                self.add_log("🔧 Setting up antrean form for test...")
+                if self.setup_antrean_form(belm_target):
+                    self.add_log("✅ Antrean form ready!")
+                    self.warriors_status = {"Test Warrior": "Ready"}
+                else:
+                    self.add_log("❌ Failed to setup antrean form")
+                    return
+                
+                # Step 6: Tunggu battle time (short version)
+                self.add_log(f"⏰ TEST: Waiting for battle time ({battle_time_str})...")
+                
+                # Short countdown untuk test
+                test_countdown = 10  # 10 detik aja buat test
+                for i in range(test_countdown, 0, -1):
+                    if self.stop_requested:
+                        return
+                    self.add_log(f"⏳ Test countdown: {i} seconds")
+                    time.sleep(1)
+                
+                # Step 7: Execute attack
+                self.add_log("⚡ TEST ATTACK! Executing final attack...")
+                self.warriors_status = {"Test Warrior": "Attacking"}
+                
+                success = self.execute_final_attack()
+                
+                if success:
+                    self.add_log("🎉 TEST SUCCESS! Antrian simulation completed!")
+                    self.warriors_status = {"Test Warrior": "Test Success"}
+                else:
+                    self.add_log("⚠️ TEST: Attack simulation completed (check browser for result)")
+                    self.warriors_status = {"Test Warrior": "Test Completed"}
+                    
+            else:
+                self.add_log("❌ Failed to create browser for test")
+                self.warriors_status = {"Test Warrior": "Failed"}
+                
+        except Exception as e:
+            self.add_log(f"💥 Test Error: {str(e)}")
+            self.warriors_status = {"Test Warrior": "Error"}
+        finally:
+            self.is_running = False
             
     def run_traditional_mode(self, belm_target, battle_time_str):
         """Run traditional mode"""
@@ -749,6 +870,44 @@ def main():
         # Refresh setiap 5 detik ketika idle untuk update status stop
         time.sleep(5)
         st.rerun()
+
+    # Di sidebar, setelah control buttons col1, col2
+    st.markdown("---")
+    st.subheader("🧪 Test Mode")
+
+    # Test mode options
+    test_mode = st.selectbox(
+        "Test Type",
+        ["Quick Test (30 seconds)", "Full Test (2 minutes)", "Custom Time"],
+        index=0
+    )
+
+    if st.button("⚡ RUN TEST", type="secondary", use_container_width=True):
+        if not bot_ui.is_running:
+            bot_ui.is_running = True
+            bot_ui.warriors_status = {}
+            bot_ui.logs = []
+            
+            # Set test time based on selection
+            now = datetime.now()
+            if test_mode == "Quick Test (30 seconds)":
+                test_time = (now + timedelta(seconds=30)).strftime("%H:%M:%S")
+            elif test_mode == "Full Test (2 minutes)":
+                test_time = (now + timedelta(minutes=2)).strftime("%H:%M:%S")
+            else:
+                # Custom - 1 minute from now
+                test_time = (now + timedelta(minutes=1)).strftime("%H:%M:%S")
+            
+            bot_ui.add_log(f"🧪 Starting {test_mode}...")
+            bot_ui.add_log(f"🎯 Test battle time: {test_time}")
+            
+            # Start test mode
+            test_thread = threading.Thread(
+                target=bot_ui.run_test_mode,
+                args=(belm_target, test_time)
+            )
+            test_thread.daemon = True
+            test_thread.start()
 
     # Footer
     st.markdown("---")
