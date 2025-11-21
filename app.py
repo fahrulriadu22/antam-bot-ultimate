@@ -115,21 +115,28 @@ class AntamBotUI:
         self.stop_requested = False
 
     def wait_for_battle_time(self, battle_time_str):
-        """Tunggu sampe waktu battle dengan countdown"""
+        """Tunggu sampe waktu battle dengan countdown (WIB TIMEZONE)"""
         try:
+            import datetime
+            
+            def get_wib_time():
+                utc_now = datetime.datetime.now(datetime.timezone.utc)
+                wib_time = utc_now + datetime.timedelta(hours=7)
+                return wib_time.replace(tzinfo=None)  # Remove timezone for comparison
+
             # Parse battle time
-            battle_time = datetime.strptime(battle_time_str, "%H:%M:%S").time()
+            battle_time = datetime.datetime.strptime(battle_time_str, "%H:%M:%S").time()
             
             while True:
                 if self.stop_requested:
                     return False
                 
-                now = datetime.now()
-                target_datetime = datetime.combine(now.date(), battle_time)
+                now = get_wib_time()
+                target_datetime = datetime.datetime.combine(now.date(), battle_time)
                 
                 # Jika sudah lewat hari ini, tunggu besok
                 if now > target_datetime:
-                    target_datetime = target_datetime + timedelta(days=1)
+                    target_datetime = target_datetime + datetime.timedelta(days=1)
                 
                 time_diff = (target_datetime - now).total_seconds()
                 
@@ -143,10 +150,8 @@ class AntamBotUI:
                     hours = int(time_diff // 3600)
                     minutes = int((time_diff % 3600) // 60)
                     seconds = int(time_diff % 60)
-                    if hours > 0:
-                        self.add_log(f"⏳ Countdown: {hours:02d}:{minutes:02d}:{seconds:02d}")
-                    else:
-                        self.add_log(f"⏳ Countdown: {minutes:02d}:{seconds:02d}")
+                    current_wib = get_wib_time().strftime("%H:%M:%S")
+                    self.add_log(f"⏳ WIB: {current_wib} | Countdown: {hours:02d}:{minutes:02d}:{seconds:02d}")
                 
                 time.sleep(1)
                 

@@ -1,5 +1,6 @@
 from config import *
 import time, os
+import datetime
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -301,16 +302,21 @@ class AntamWarrior:
 # TIME SYNCHRONIZATION SYSTEM  
 # ==========================================================
 def get_precise_time():
-    return time.strftime("%H:%M:%S")
+    """Get current time in WIB (UTC+7)"""
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
+    wib_time = utc_now + datetime.timedelta(hours=7)
+    return wib_time.strftime("%H:%M:%S")
 
 def wait_until_battle_time():
-    print("⏰ Menunggu waktu battle...")
+    print("⏰ Menunggu waktu battle (WIB)...")
     while True:
         current_time = get_precise_time()
+        print(f"🕐 WIB Time: {current_time} | Target: {BATTLE_TIME}")
+        
         if current_time >= BATTLE_TIME:
             print("🎯 WAKTU BATTLE! SERANG!!!")
             return True
-        time.sleep(0.1)
+        time.sleep(1)
 
 # ==========================================================
 # BATTLE COMMAND CENTER - DENGAN RECAPTCHA
